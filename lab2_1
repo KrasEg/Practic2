@@ -1,0 +1,480 @@
+#include <iostream>
+#include <fstream> 
+#include <string>
+#include <Windows.h>
+using namespace std;
+string path = "C:\\Users\\Public\\Documents\\students.txt";
+struct Profile
+{
+	string name;
+	char sex;         
+	int group;       
+	int id;           
+	int grades[8];  
+	char city;
+	int stonks;
+};
+void creatingRecord() {
+	SetConsoleCP(1251);
+	Profile student;          
+	cout << "ФИО: ";
+	cin.ignore();
+	getline(cin, student.name); 
+	cout << "Группа: ";
+	cin >> student.group;     
+	cout << "Номер: ";
+	cin >> student.id;        
+	cout << "Пол (М/Ж): ";
+	cin >> student.sex;
+	cout << "Иногородний? (+/-): ";
+	cin >> student.city;
+	cout << "Доход: ";
+	cin >> student.stonks;
+	cout << "Оценки: ";
+	for (int i = 0; i < 8; i++)  cin >> student.grades[i];
+	int temp = 0;
+	for (int i = 0; i < 8; i++) 
+	{
+		if (student.grades[i] == 2)
+			temp++; 
+	}
+	if (temp == 0)
+	{
+		ofstream database;
+		database.open(path, ios::app);
+		if (!database.is_open()) 
+			cout << '\n' << "Ошибка сохранения"; 
+		else 
+		{
+			database << student.name << '\n';
+			database << student.group << '\n' << student.id << '\n' << student.sex << '\n'<<student.city<<'\n'<<student.stonks<<'\n';
+			for (int i = 0; i < 8; i++)
+				database << student.grades[i] << " ";
+			database << '\n';
+			database.close();
+			cout << '\n' << "Профиль сохранён.";
+		}
+	}
+	else 
+		cout << '\n' << "Пацан к успеху шёл, не получилось, не фартануло.";
+	SetConsoleCP(866);
+}
+int countStudents() 
+{
+	ifstream database(path);
+	if (database.is_open())
+	{
+		int temp = 0;
+		string data;
+		while (!database.eof())
+		{
+			getline(database, data);
+			temp++;
+		}
+		database.close();
+		int n;
+		n = temp / 7;
+		return n;
+	}
+	else return 0;
+}
+void showData()
+{
+	ifstream database(path); 
+	if (!database.is_open()) 
+		cout << "Ошибочка открытия";
+	else
+	{
+		int temp;
+		temp = countStudents();
+		if (temp == 0)
+			cout << "Пусто, как в моей голове";
+		else
+		{
+			string data;
+			while (!database.eof())
+			{
+				getline(database, data);
+				cout << data << '\n'; 
+			}
+		}
+		database.close();
+	}
+}
+void createStudArr(Profile *student) {
+	ifstream database(path);
+	if (!database.is_open())
+		cout << "Ошибка 0000!";
+	else {
+		int size;
+		char trash;
+		size = countStudents();
+		if (size == 0)
+			cout << "Пустоши." << endl;
+		else
+		{
+			for (int i = 0; i < size; i++) 
+			{
+				getline(database, student[i].name);
+				database >> student[i].group >> student[i].id >> student[i].sex>>student[i].city>>student[i].stonks;
+				for (int j = 0; j < 8; j++)
+					database >> student[i].grades[j];
+				database.get(trash);
+				database.get(trash);
+			}
+			database.close();
+		}
+	}
+}
+void showGroup(){
+	int size;
+	size = countStudents();
+	Profile* student = new Profile[size];
+	createStudArr(student);
+	int temp = 0;
+	int n;
+	cout << "Введите группу: ";
+	cin >> n;
+	for (int i = 0; i < size; i++) 
+	{
+		if (student[i].group == n) 
+		{
+			cout << student[i].id << ") " << student[i].name << '\n';
+			cout << student[i].sex << '\n' << "Иногородний: " << student[i].city << '\n' << "Доход: " << student[i].stonks<<'\n';
+			cout << "Оценки: ";
+			for (int j = 0; j < 8; j++)
+				cout << student[i].grades[j] << " ";
+			cout << "\n\n";
+			temp++;
+		}
+	}
+	if (temp == 0)
+		cout << "Ничего не найдено" << endl;
+	delete[] student;
+}
+float avg(int i, Profile *student) {			// Поиск среднего значения оценок. Нужно для упрощения следующей функции(Top)
+	float Grade = 0;
+	for (int j = 0; j < 8; j++)
+		Grade += student[i].grades[j];
+	return (Grade / 8);
+}
+void showBest() {
+	int size;
+	size = countStudents();
+	Profile* student = new Profile[size];
+	createStudArr(student);
+	bool sorted = false;
+	while (sorted != true) {
+		sorted = true;
+		for (int i = 0; i < (size-1); i++) {
+			if (avg(i, student) < avg(i + 1, student)) {
+				swap(student[i], student[i + 1]);
+				sorted = false;
+			}
+		}
+	}
+	for (int i = 0; i < size; i++) {
+		cout << student[i].name << " Средний балл: " << avg(i, student)<<'\n';
+	}
+}
+void showSex() {
+	int size;
+	size = countStudents();
+	Profile* student = new Profile[size];
+	createStudArr(student);
+	int tempm=0;
+	int tempf=0;
+	for (int i = 0; i < size; i++)
+	{
+		if (student[i].sex == 'М') tempm++;
+		else tempf++;
+	}
+	cout << "Пацаны: " << tempm << '\n';
+	cout << "Пацанессы: " << tempf<<'\n';
+	delete[] student;
+}
+void gradeSort() {
+	int size;
+	size = countStudents();
+	int temp;
+	Profile* student = new Profile[size];
+	createStudArr(student);
+	cout << "Без стипендии:'\n";
+	for (int i = 0; i < size; i++)
+	{
+		temp = 0;
+		for (int j = 0; j < 8; j++)
+			if (student[i].grades[j]>3) temp++;
+		if (temp < 8) {
+			cout << student[i].name << '\n' << student[i].id << '\n';
+			cout << student[i].group << '\n';
+			cout << student[i].sex << '\n';
+			cout << "Оценки: ";
+			for (int j = 0; j < 8; j++)
+				cout << student[i].grades[j] << " ";
+			cout << '\n';
+		}
+	}
+	cout << "\n4 и 5: \n";
+	for (int i = 0; i < size; i++)
+	{
+		temp = 0;
+		int temp4 = 0;
+		for (int j = 0; j < 8; j++) {
+			if (student[i].grades[j] < 4) temp++;
+			if (student[i].grades[j] == 4) temp4++;
+		}
+		if (temp == 0 and temp4 > 0) {
+			cout << student[i].name << '\n' << student[i].id << '\n';
+			cout << student[i].group << '\n';
+			cout << student[i].sex << '\n';
+			cout << "Оценки: ";
+			for (int j = 0; j < 8; j++)
+				cout << student[i].grades[j] << " ";
+			cout << "\n";
+		}
+	}
+	cout << "\nТолько 5: \n";
+	for (int i = 0; i < size; i++)
+	{
+		temp = 0;
+		for (int j = 0; j < 8; j++)
+			if (student[i].grades[j] != 5) temp++;
+		if (temp == 0) {
+			cout << student[i].name << '\n' << student[i].id << '\n';
+			cout << student[i].group << '\n';
+			cout << student[i].sex << '\n';
+			cout << "Оценки: ";
+			for (int j = 0; j < 8; j++)
+				cout << student[i].grades[j] << " ";
+			cout << "\n\n";
+		}
+	}
+}
+void showId() {
+	int size;
+	size = countStudents();
+	Profile* student = new Profile[size];
+	createStudArr(student);
+	int temp = 0;
+	int n;
+	cout << "Введите номер: ";
+	cin >> n;
+	for (int i = 0; i < size; i++)
+	{
+		if (student[i].id == n)
+		{
+			cout << student[i].id << ") " << student[i].name << '\n';
+			cout << student[i].group << '\n';
+			cout << student[i].sex << '\n' << "Иногородний: " << student[i].city << '\n' << "Доход: " << student[i].stonks<<'\n';
+			cout << "Оценки: ";
+			for (int j = 0; j < 8; j++)
+				cout << student[i].grades[j] << " ";
+			cout << "\n\n";
+			temp++;
+		}
+	}
+	if (temp == 0)
+		cout << "Здесь таких не обитает" << endl;
+	delete[] student;
+}
+void changeStud() {
+	int size;
+	size = countStudents();
+	Profile* student = new Profile[size];
+	createStudArr(student);
+	SetConsoleCP(1251);
+	int temp=0;
+	int chId;
+	cout << "Введите имя студента, которого надо поменять: ";
+	string stName;
+	cin.ignore();
+	getline(cin,stName);
+	for (int i = 0; i < size; i++)
+	{
+		if (student[i].name == stName)
+		{
+			chId = i;
+			temp++;
+		}
+	}
+	if (temp == 0)
+		cout << "Это кто?" << endl;
+	else {
+		cout << "Введите новую информацию \n";
+		cout << "ФИО: ";
+		getline(cin,student[chId].name);
+		cout << "Группа: ";
+		cin >> student[chId].group;
+		cout << "Номер: ";
+		cin >> student[chId].id;
+		cout << "Пол (М/Ж): ";
+		cin >> student[chId].sex;
+		cout << "Иногородний? (+/-): ";
+		cin >> student[chId].city;
+		cout << "Доход: ";
+		cin >> student[chId].stonks;
+		cout << "Оценки: "; 
+		for (int i = 0; i < 8; i++)  cin >> student[chId].grades[i];
+		temp = 0;
+		for (int i = 0; i < 8; i++)
+		{
+			if (student[chId].grades[i] == 2)
+				temp++;
+		}
+		ofstream database;
+		database.open(path);
+		if (!database.is_open())
+			cout << '\n' << "Ошибка сохранения!";
+		else
+			if (temp == 0)
+			{
+				for (int i = 0; i < size; i++) {
+					database << student[i].name << '\n';
+					database << student[i].group << '\n' << student[i].id << '\n' << student[i].sex << '\n' << student[i].city << '\n' << student[i].stonks << '\n';
+					for (int j = 0; j < 8; j++)
+						database << student[i].grades[j] << " ";
+					database << '\n';
+				}
+				database.close();
+				cout << '\n' << "Изменения сохранены.";
+			
+			}
+			else
+				cout << '\n' << "Отчисление уже близко.";
+		SetConsoleCP(866);
+	}
+}
+void sharaga() {
+	int size;
+	size = countStudents();
+	Profile* student = new Profile[size];
+	createStudArr(student);
+	bool sorted = false;
+	while (sorted != true) {
+		sorted = true;
+		for (int i = 0; i < size - 1; i++) {
+			if (student[i].city > student[i + 1].city) {
+				swap(student[i], student[i + 1]);
+				sorted = false;
+			}
+		}
+	}
+	int temp = 0;
+	int j = 0;
+	while (student[j].city == '+') {
+		temp = j;
+		j++;
+	}
+	sorted = false;
+	while (sorted != true) {
+		sorted = true;
+		for (int i = 0; i < j - 1; i++) {
+			if (student[i].stonks > student[i + 1].stonks) {
+				swap(student[i], student[i + 1]);
+				sorted = false;
+			}
+		}
+	}
+	sorted = false;
+	while (sorted != true) {
+		sorted = true;
+		for (int i = j; i < size - 1; i++) {
+			if (student[i].stonks > student[i + 1].stonks) {
+				swap(student[i], student[i + 1]);
+				sorted = false;
+			}
+		}
+	}
+	cout << "Очередь на место в общаге: \n";
+	for (int i = 0; i < size; i++) {
+		cout << student[i].name <<'\n'<<student[i].city<<'\n'<<student[i].stonks << "\n\n";
+	}
+}
+int main()
+{
+	setlocale(0, "");
+	int input;
+
+Menu: {
+	system("cls");
+	cout << "Введите номер задания:\n" <<
+		"1. Создать новую запись о студенте.\n" <<
+		"2. Внести изменения в уже имеющуюся запись.\n" <<
+		"3. Вывести данные всех студентов.\n" <<
+		"4. Вывести данные студентов определённой группы.\n" <<
+		"5. Вывод топа самых успешных студентов.\n" <<
+		"6. Вывести кол-во студентов мужского и женского полов.\n" <<
+		"7. Вывод студентов по группам успеваемости.\n" <<
+		"8. Вывод студентов имеющих N-ый номер.\n" <<
+		"9. Выйти из программы.\n" <<
+		"10. Очередь на место в общаге(идз).\n";
+	}
+
+cin >> input;
+switch (input) {
+case 1: { 
+	system("cls");
+	creatingRecord();
+	system("pause");
+	goto Menu;
+}
+case 2: { 
+	system("cls");
+	changeStud();
+	system("pause");
+	goto Menu;
+}
+case 3: { 
+	system("cls");
+	showData();
+	system("pause");
+	goto Menu;
+}
+case 4: { 
+	system("cls");
+	showGroup();
+	system("pause");
+	goto Menu;
+}
+case 5: { 
+	system("cls");
+	showBest();
+	system("pause");
+	goto Menu;
+}
+case 6: { 
+	system("cls");
+	showSex();
+	system("pause");
+	goto Menu;
+}
+case 7: { 
+	system("cls");
+	gradeSort();
+	system("pause");
+	goto Menu;
+}
+case 8: { 
+	system("cls");
+	showId();
+	system("pause");
+	goto Menu;
+}
+case 9: {
+	break;
+}
+case 10: {
+	system("cls");
+	sharaga();
+	system("pause");
+	goto Menu;
+}
+default: {
+	cout << "\nНеверный ввод.\n\n";
+	cin.clear();									
+	system("pause");
+	goto Menu;
+}
+}
+}
