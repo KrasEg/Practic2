@@ -1,0 +1,424 @@
+#include <iostream>
+#include <string>
+#include <forward_list>
+#include <map>
+using namespace std;
+double Count(double& value1, double& value2, string& operation) {
+    switch (operation[0]) {
+    case '+':
+        return value1 + value2;
+        break;
+    case '-':
+        return value1 - value2;
+        break;
+    case '*':
+        return value1 * value2;
+        break;
+    case '/':
+        return value1 / value2;
+        break;
+    default:
+        break;
+    }
+}
+void symbolCheck(string str) {
+    if (str[0] == ' ') {
+        str.erase(0, 1);
+    }
+    else {
+        str.erase(str.size() - 1);
+    }
+    int count = 0;
+    string symbol, goodstr;
+    int number;
+    for (int i = 0; i < str.length(); i++) {
+        if (str[i] == ' ') {
+            symbol = str.substr(count, i - count);
+            count = i + 1;
+            if (symbol != "+" && symbol != "-" && symbol != "*" && symbol != "/") {
+                try {
+                    number = stoi(symbol);
+                    goodstr += symbol;
+                    goodstr += " ";
+                }
+                catch (...) {
+                    cout << symbol << " = ";
+                    symbol.erase();
+                    cin >> symbol;
+                    goodstr += symbol;
+                    goodstr += " ";
+                }
+            }
+            else {
+                goodstr += symbol;
+                goodstr += " ";
+            }
+        }
+    }
+    symbol = str.substr(count);
+    if (symbol != "+" && symbol != "-" && symbol != "*" && symbol != "/") {
+        try {
+            number = stoi(symbol);
+            goodstr += symbol;
+            goodstr += " ";
+        }
+        catch (...) {
+            cout << symbol << " = ";
+            symbol.erase();
+            cin.ignore();
+            getline(cin, symbol);
+            goodstr += symbol;
+            goodstr += " ";
+        }
+    }
+    else {
+        goodstr += symbol;
+        goodstr += " ";
+    }
+    cout << "\nИтог: " << goodstr << "\n";
+}
+void definePost(string symbol, string& polishNote, forward_list <string>& stackOp) {
+    map <string, int> Prio = { {"+", 1}, {"-", 1}, {"*", 2}, {"/", 2}, {"(", 0}, {")", 0} };
+    if (symbol != "+" && symbol != "-" && symbol != "*" && symbol != "/" && symbol != "(" && symbol != ")") {
+        polishNote += symbol;
+        polishNote += " ";
+    }
+    else if (symbol == "+" || symbol == "-" || symbol == "*" || symbol == "/") {
+        bool check = false;
+        while (check == false) {
+            if ((stackOp.begin() == stackOp.end()) || (Prio[symbol] > Prio[stackOp.front()])) {
+                stackOp.push_front(symbol);
+                check = true;
+            }
+            else if (Prio[stackOp.front()] >= Prio[symbol]) {
+                polishNote += stackOp.front();
+                polishNote += " ";
+                stackOp.pop_front();
+            }
+        }
+    }
+    else if (symbol == "(") {
+        stackOp.push_front(symbol);
+    }
+    else if (symbol == ")") {
+        while (stackOp.front() != "(") {
+            polishNote += stackOp.front();
+            polishNote += " ";
+            stackOp.pop_front();
+        }
+        stackOp.pop_front();
+    }
+    return;
+}
+void definePref(string symbol, string& polishNote, forward_list <string>& stackOp) {
+    map <string, int> Prio = { {"+", 1}, {"-", 1}, {"*", 2}, {"/", 2}, {"(", 0}, {")", 0} };
+    if (symbol != "+" && symbol != "-" && symbol != "*" && symbol != "/" && symbol != "(" && symbol != ")") {
+        polishNote += symbol;
+        polishNote += " ";
+    }
+    else if (symbol == "+" || symbol == "-" || symbol == "*" || symbol == "/") {
+        bool check = false;
+        while (check == false) {
+            if ((stackOp.begin() == stackOp.end()) || (Prio[symbol] > Prio[stackOp.front()])) {
+                stackOp.push_front(symbol);
+                check = true;
+            }
+            else if (Prio[stackOp.front()] >= Prio[symbol]) {
+                polishNote += stackOp.front();
+                polishNote += " ";
+                stackOp.pop_front();
+            }
+        }
+    }
+    else if (symbol == "(") {
+        stackOp.push_front(symbol);
+    }
+    else if (symbol == ")") {
+        while (stackOp.front() != "(") {
+            polishNote += stackOp.front();
+            polishNote += " ";
+            stackOp.pop_front();
+        }
+        stackOp.pop_front();
+    }
+    return;
+}
+void post(string& polishNote) {
+    forward_list <string> stackOp;
+    string symbol;
+    cout << "Введите выражение(Каждый символ нужно писать через пробел)\n"
+        << "Например: ( 1 + 2 ) * 3\n";
+    cin >> symbol;
+    definePost(symbol, polishNote, stackOp);
+    cout << "Строка: " << polishNote << "\t\tСтэк: ";
+    for (auto it = stackOp.begin(); it != stackOp.end(); it++) {
+        cout << *it << " ";
+    }
+    cout << "\n";
+    while (cin.get() != '\n') {
+        cin >> symbol;
+        definePost(symbol, polishNote, stackOp);
+        cout << "Строка: " << polishNote << "\t\tСтэк: ";
+        for (auto it = stackOp.begin(); it != stackOp.end(); it++) {
+            cout << *it << " ";
+        }
+        cout << "\n";
+    }
+    while (stackOp.begin() != stackOp.end()) {
+        polishNote += stackOp.front();
+        polishNote += " ";
+        stackOp.pop_front();
+    }
+
+}
+void pref() {
+    forward_list <string> stackOp;
+    string polishNote;
+    string str;
+
+    cout << "Введите выражение(Каждый символ нужно писать через пробел)\n"
+        << "Например: ( 1 + 2 ) * 3\n";
+    cin.ignore();
+    getline(cin, str);
+    reverse(str.begin(), str.end());
+    for (int i = 0; i < str.length(); i++) {
+        if (str[i] == '(')
+            str[i] = ')';
+        else if (str[i] == ')')
+            str[i] = '(';
+    }
+
+    cout << "\n" << str << "\n";
+
+    int count = 0;
+    string symbol;
+    for (int i = 0; i < str.length(); i++) {
+        if (str[i] == ' ') {
+            symbol = str.substr(count, i - count);
+            count = i + 1;
+            definePref(symbol, polishNote, stackOp);
+            cout << "Строка: " << polishNote << "\t\tСтэк: ";
+            for (auto it = stackOp.begin(); it != stackOp.end(); it++) {
+                cout << *it << " ";
+            }
+            cout << "\n";
+        }
+    }
+    symbol = str.substr(count);
+    definePref(symbol, polishNote, stackOp);
+    cout << "Строка: " << polishNote << "\t\tСтэк: ";
+    for (auto it = stackOp.begin(); it != stackOp.end(); it++) {
+        cout << *it << " ";
+    }
+    cout << "\n";
+    while (stackOp.begin() != stackOp.end()) {
+        polishNote += stackOp.front();
+        polishNote += " ";
+        stackOp.pop_front();
+    }
+    reverse(polishNote.begin(), polishNote.end());
+    symbolCheck(polishNote);
+}
+void postSolve(string& str) {
+    forward_list <int> stack;
+    int count = 0;
+    string symbol;
+    int number;
+    double n1,n2,res;
+    for (int i = 0; i < str.length(); i++) {
+        if (str[i] == ' ') {
+            symbol = str.substr(count, i - count);
+            count = i + 1;
+            if (symbol != "+" && symbol != "-" && symbol != "*" && symbol != "/") {
+                try {
+                    number = stod(symbol);
+                }
+                catch (...) {
+                    cout << "ERROR\n";
+                    return;
+                }
+                stack.push_front(number);
+            }
+            else {
+                n1 = stack.front();
+                stack.pop_front();
+                n2 = stack.front();
+                stack.pop_front();
+                stack.push_front(Count(n1,n2, symbol));
+            }
+        }
+    }
+    symbol = str.substr(count);
+    n1 = stack.front();
+    stack.pop_front();
+    n2 = stack.front();
+    stack.pop_front();
+    res=Count(n1, n2, symbol);
+    if (stack.empty())
+        cout << "Ответ: " << res << "\n";
+    else
+        cout << "ERROR\n";
+}
+
+void prefSolve(string& str) {
+    reverse(str.begin(), str.end());
+    forward_list <int> stack;
+    int count = 0;
+    string symbol;
+    int number;
+    double n1, n2, res;
+    for (int i = 0; i < str.length(); i++) {
+        if (str[i] == ' ') {
+            symbol = str.substr(count, i - count);
+            reverse(symbol.begin(), symbol.end());
+            count = i + 1;
+            if (symbol != "+" && symbol != "-" && symbol != "*" && symbol != "/") {
+                try {
+                    number = stod(symbol);
+                }
+                catch (...) {
+                    cout << "ERROR\n";
+                    return;
+                }
+                stack.push_front(number);
+            }
+            else {
+                n1 = stack.front();
+                stack.pop_front();
+                n2 = stack.front();
+                stack.pop_front();
+                stack.push_front(Count(n1, n2, symbol));
+            }
+        }
+    }
+    symbol = str.substr(count);
+    n1 = stack.front();
+    stack.pop_front();
+    n2 = stack.front();
+    stack.pop_front();
+    res=Count(n1, n2, symbol);
+    if (stack.empty())
+        cout << "Ответ: " << res << "\n";
+    else
+        cout << "ERROR\n";
+}
+int main() {
+    setlocale(0, "");
+    int input;
+    Menu: {
+        system("cls");
+        cout << "Что желаете сделать?:\n"
+            << "1. Преобразовать выражение.\n"
+            << "2. Вычислить выражение.\n"
+            << "0. Выход.\n";
+        }
+    cin >> input;
+    switch (input) {
+    case 1: {
+        int input1;
+
+        Menu1: {
+            system("cls");
+            cout << "В какую форму?:\n"
+                << "1. Прямая польская нотация.\n"
+                << "2. Обратная польская нотация.\n"
+                << "0. Выход.\n";
+            }
+        cin >> input1;
+        switch (input1) {
+        case 1: {
+            system("cls");
+            pref();
+            system("pause");
+            goto Menu;
+        }
+        case 2: {
+            system("cls");
+            string polishNote;
+            post(polishNote);
+            symbolCheck(polishNote);
+            system("pause");
+            goto Menu;
+        }
+        case 0: {
+            goto Menu;
+        }
+        default: {
+            cout << "\nНеверный ввод.\n\n";
+            cin.clear();
+            while (cin.get() != '\n');
+            system("pause");
+            goto Menu1;
+        }
+        }
+    }
+    case 2: {
+        int input2;
+
+        Menu2: {
+            system("cls");
+            cout << "Какое выражение?:\n"
+                << "1. Обычное.\n"
+                << "2. Прямое.\n"
+                << "3. Обратное.\n"
+                << "0. Выход.\n";
+            }
+        cin >> input2;
+        switch (input2) {
+        case 1: {
+            system("cls");
+            string str;
+            post(str);
+            str.erase(str.size() - 1);
+            postSolve(str);
+
+            system("pause");
+            goto Menu;
+        }
+        case 2: {
+            system("cls");
+            string str;
+            cout << "Введите выражение(Каждый символ нужно писать через пробел)\n";
+            cin.ignore();
+            getline(cin, str);
+            prefSolve(str);
+            system("pause");
+            goto Menu;
+        }
+        case 3: {
+            system("cls");
+            string str;
+            cout << "Введите выражение(Каждый символ нужно писать через пробел)\n";
+            cin.ignore();
+            getline(cin, str);
+            postSolve(str);
+            system("pause");
+            goto Menu;
+        }
+        case 0: {
+            goto Menu;
+        }
+        default: {
+            cout << "\nНеверный ввод.\n\n";
+            cin.clear();
+            while (cin.get() != '\n');
+            system("pause");
+            goto Menu2;
+        }
+    }
+    system("pause");
+    goto Menu;
+    }
+    case 0: {
+        break;;
+    }
+    default: {
+        cout << "\nНеверный ввод.\n\n";
+        cin.clear();
+        while (cin.get() != '\n');
+        system("pause");
+        goto Menu;
+    }
+    }
+  
+}
