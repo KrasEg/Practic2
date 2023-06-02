@@ -1,0 +1,361 @@
+#include <iostream>
+#include <ctime>
+#include <chrono>
+using namespace std;
+using namespace chrono;
+struct list {
+	int data;
+	list* Pred;
+	list* Next;
+};
+list* CreateListA(unsigned &Length)
+{
+    list* Curr = 0,     
+        * Next = 0;     
+    auto start = steady_clock::now();
+    for (unsigned i = 1; i <= Length; ++i)
+    {
+        Curr = new list;
+        Curr->data = rand() % 100;
+        Curr->Next = Next;
+        if (Next)   
+            Next->Pred = Curr;
+        Next = Curr;
+    }
+    Curr->Pred = 0;
+    auto end = steady_clock::now();
+    cout << "Время создания " << duration_cast<nanoseconds>(end - start).count() << " наносекунд\n";
+    return Curr;
+}
+list* CreateListB(unsigned &length) {
+	list* curr = 0,
+		* pred = 0;
+	int input = 0;
+	auto start = steady_clock::now();
+	cin.ignore();
+	do {
+		cin >> input;
+		curr = new list;
+		curr->data = input;
+		curr->Pred = pred;
+		if (pred)
+			pred->Next = curr;
+		pred = curr;
+		length++;
+	} while (cin.get() != '\n');
+	curr->Next = 0;
+	auto end = steady_clock::now();
+	cout << "Время создания " << duration_cast<nanoseconds>(end - start).count() << " наносекунд\n";
+	while (curr->Pred)
+		curr = curr->Pred;
+	return curr;
+}
+void ShowList (list* curr, unsigned length) {
+	while (curr) {
+		cout << curr->data << " ";
+		curr = curr->Next;
+	}
+	cout << "\nДлина списка: " << length << "\n";
+}
+list* InsertElem(list* curr, unsigned& length) {
+	int index, data;
+	list* pred = 0, * next = 0;
+	if (length == 0) {
+		cout << "Список ещё не создан";
+		return curr;
+	}
+	cout << "Введите индекс элемента, перед которым надо вставить новый: ";
+	cin >> index;
+	if (index > length||index<1) {
+		cout << "Данный индекс выходит за пределы списка. Вы будете возвращены в меню.\n";
+		return curr;
+	}
+	cout << "Введите значение нового элемента списка: ";
+	cin >> data;
+	auto time1 = steady_clock::now();
+	for (int i = 1; i < length; i++) {
+		if (i == index) {
+			pred = curr->Pred;
+			next = curr;
+			curr = new list;
+			curr->data = data;
+			curr->Pred = pred;
+			curr->Next = next;
+			next->Pred = curr;
+			if (i != 1)
+				pred->Next = curr;
+			length++;
+			break;
+		}
+		curr = curr->Next;
+	}
+	if (index == length) {
+		next = curr;
+		pred = curr->Pred;
+		curr = new list;
+		curr->data = data;
+		next->Pred = curr;
+		curr->Next = next;
+		curr->Pred = pred;
+		if (pred)	pred->Next = curr;
+		length++;
+	}
+	auto time2 = steady_clock::now();
+	cout << "\nВремя вставки " << duration_cast<nanoseconds>(time2 - time1).count() << " наносекунд\n";
+	while (curr->Pred)
+		curr = curr->Pred;
+	ShowList(curr, length);
+	return curr;
+}
+list* DelElem(list* curr,unsigned &length) {
+	list* pred, * next;
+	int index=0, data;
+	if (length == 0) { 
+		cout << "Нельзя удалить то, чего нет.\n"; 
+		return curr;
+	}
+	cout << "1)Удалить по индексу\n2)Удалить по значению\n";
+	cin >> data;
+	if (data == 1) {
+		cout << "Введите индекс: ";
+		cin >> index;
+		if (index > length) {
+			cout << "Данный индекс выходит за пределы списка. Вы будете возвращены в меню.";
+			return curr;
+		}
+		auto time1 = steady_clock::now();
+		for (int i = 1; i < length;i++) {
+			if (i == index) {
+				pred = curr->Pred;
+				next = curr->Next;
+				delete curr;
+				curr = 0;
+				if (i != 1) {
+					pred->Next = next;
+					curr = pred;
+				}
+				next->Pred = pred;
+				curr = next;
+				length--;
+				break;
+			}
+			curr = curr->Next;
+		}
+		if (index == length) {
+			pred = curr->Pred;
+			next = curr->Next;
+			delete curr;
+			curr = 0;
+			pred->Next = next;
+			curr = pred;
+			length--;
+		}
+		auto time2 = steady_clock::now();
+		cout << "\nВремя удаления " << duration_cast<nanoseconds>(time2 - time1).count() << " наносекунд\n";
+	}
+	else if (data == 2) {
+		cout << "Введите значение: ";
+		cin >> data;
+		auto time1 = steady_clock::now();
+		for (int i = 1; i < length; i++) {
+			if (curr->data == data) {
+				pred = curr->Pred;
+				next = curr->Next;
+				delete curr;
+				curr = 0;
+				if (next != 0) {
+					next->Pred = pred;
+					curr = next;
+				}
+				if (pred != 0) {
+					pred->Next = next;
+					curr = pred;
+				}				
+				length--;
+				break;
+			}
+			curr = curr->Next;
+		}
+		auto time2 = steady_clock::now();
+		cout << "\nВремя удаления " << duration_cast<nanoseconds>(time2 - time1).count() << " наносекунд\n";
+	}
+	else cout << "Неверный ввод";
+	while (curr->Pred)
+		curr = curr->Pred;
+	ShowList(curr, length);
+	return curr;
+}
+void Exchange (list* curr,unsigned length) {
+	list* curr1 = 0, * curr2 = 0;
+	int i=0, ind1=0,ind2=0;
+	cout << "Введите индексы элементов: ";
+	cin >> ind1 >> ind2;
+	auto time1 = steady_clock::now();
+	while(curr) {
+		i++;
+		if (i == ind1)
+			curr1 = curr;
+		if (i == ind2)
+			curr2 = curr;
+		curr = curr->Next;
+	}
+	swap(curr1->data, curr2->data);
+	auto time2 = steady_clock::now();
+	cout << "\nВремя замены " << duration_cast<nanoseconds>(time2 - time1).count() << " наносекунд\n";
+}
+void GetElem(list* curr) {
+	int input;
+	bool check=0;
+	cout << "1) Получение по индексу.\n2) Получение по значению.\n";
+	cin >> input;
+	if (input == 1) {
+		int index, i = 0;
+		cout << "Введите значение индекса: ";
+		cin >> index;
+		auto time1 = steady_clock::now();
+		while (curr) {
+			i++;
+			if (i == index) {
+				cout << i << ") " << curr->data << "\n";
+				check = 1;
+			}
+			curr = curr->Next;
+		}
+		auto time2 = steady_clock::now();
+		cout << "\nВремя получения " << duration_cast<nanoseconds>(time2 - time1).count() << " наносекунд\n";
+	}
+	else if (input == 2) {
+		int number,i=0;
+		cout << "Введите значение: ";
+		cin >> number;
+		auto time1 = steady_clock::now();
+		while (curr) {
+			i++;
+			if (curr->data == number) {
+				cout << i << ") " << curr->data << "\n";
+				check = 1;
+			}
+			curr = curr->Next;
+		}
+		auto time2 = steady_clock::now();
+		cout << "\nВремя получения " << duration_cast<nanoseconds>(time2 - time1).count() << " наносекунд\n";
+	}
+	else cout << "Неверный ввод";
+	if (check == 0) cout << "Ничего не найдено";
+}
+list* DeleteList(list* curr) {
+	list* del = curr;
+	while (curr) {
+		curr = curr->Next;
+		delete del;
+		del = curr;
+	}
+	return curr;
+}
+int main()
+{
+	setlocale(0, "");
+	unsigned length = 0;
+	list* list = NULL;
+	char menu;
+	while (true) {
+		cout << "\tМеню\n"
+			<< "1 - Создать новый список (существующий список будет удалён).\n"
+			<< "2 - Вывести список.\n"
+			<< "3 - Вставить элемент в список.\n"
+			<< "4 - Удалить элемент списка.\n"
+			<< "5 - Поменять 2 элемента списка местами.\n"
+			<< "6 - Получить элемент списка.\n"
+			<< "0 - Выйти из программы\n"
+			<< "Выберите пункт меню: ";
+		cin >> menu;
+		switch (menu) {
+		case '1':
+			system("cls");
+			if (length != 0) {
+				list = DeleteList(list);
+				length = 0;
+			}
+			char input;
+			cout << "1 - Создать двусвязный список со случайными числами от 0 до 99.\n"
+				<< "2 - Создать список и ввести элементы вручную (длина списка определится автоматически).\n";
+			cin >> input;
+			if (input == '1') {
+				cout << "Введите длину списка: ";
+				cin >> length;
+				list = CreateListA(length);
+				cout << "Создан список: ";
+				ShowList(list, length);
+			}
+			else if (input == '2') {
+				cout << "Введите значения данных (через пробел): ";
+				list = CreateListB(length);
+				cout << "Создан список: ";
+				ShowList(list, length);
+			}
+			else
+				cout << "Некорректный выбор. Вы будете возвращены в меню.\n";
+			system("pause");
+			system("cls");
+			break;
+		case '2':
+			system("cls");
+			if (length == 0) {
+				cout << "Список пуст!\n";
+				system("pause");
+				system("cls");
+				break;
+			}
+			cout << "Список: ";
+			ShowList(list, length);
+			system("pause");
+			system("cls");
+			break;
+		case '3':
+			system("cls");
+			list = InsertElem(list, length);
+			system("pause");
+			system("cls");
+			break;
+		case '4':
+			system("cls");
+			list = DelElem(list, length);
+			system("pause");
+			system("cls");
+			break;
+		case '5':
+			system("cls");
+			if (length < 2) {
+				cout << "Список должен состоять хотя бы из 2 элементов!\n";
+				system("pause");
+				system("cls");
+				break;
+			}
+			Exchange(list,length);
+			ShowList(list, length);
+			system("pause");
+			system("cls");
+			break;
+		case '6':
+			system("cls");
+			if (length == 0) {
+				cout << "Список пуст!\n";
+				system("pause");
+				system("cls");
+				break;
+			}
+			GetElem(list);
+			system("pause");
+			system("cls");
+			break;
+		case '0':
+			return 0;
+		default:
+			cout << "Пункт меню выбран неправильно!\n";
+			system("pause");
+			system("cls");
+			cin.ignore();
+		}
+	}
+}
+
