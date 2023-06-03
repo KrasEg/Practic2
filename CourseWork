@@ -36,18 +36,24 @@ void insert(Node* (&root), int data) {
 }
 void createRandTree(Node* (&tree), int amount) {
 	int data;
+	auto start = steady_clock::now();
 	for (int i = 0; i < amount; i++) {
 		data = 99 - (rand() % 199);
 		insert(tree, data);
 	}
+	auto end = steady_clock::now();
+	cout << "Время создания " << duration_cast<nanoseconds>(end - start).count() << " наносекунд\n";
 }
 void createInpTree(Node* (&tree)) {
 	int inp;
+	auto start = steady_clock::now();
 	do {
 		cout << "Введите элементs дерева: ";
 		cin >> inp;
 		insert(tree, inp);
 	} while (cin.get() != '\n');
+	auto end = steady_clock::now();
+	cout << "Время создания " << duration_cast<nanoseconds>(end - start).count() << " наносекунд\n";
 }
 void createFileTree(Node* (&tree)) {
 	ifstream database("treeElem.txt");
@@ -56,14 +62,15 @@ void createFileTree(Node* (&tree)) {
 	else
 	{		
 		int data;
-		char trash;
+		auto start = steady_clock::now();
 		while (!database.eof())
 		{
 			database >> data;
-			//database.get(trash};
 			insert(tree, data);
 		}
 		database.close();
+		auto end = steady_clock::now();
+		cout << "Время создания " << duration_cast<nanoseconds>(end - start).count() << " наносекунд\n";
 	}
 }
 void showTree(Node* (&root), Trunk* prev, bool isRight) {
@@ -171,19 +178,8 @@ void treeToFile(Node* (&root), Trunk* prev, bool isRight, ofstream& file) {
 	trunk->str = "   |";
 	treeToFile(root->left, trunk, false, file);
 }
-void createTasks(int tasks) {
-	ofstream file;
-	file.open("output_task.txt");
-	if (!file.is_open()) cout << "Ошибка открытия файла\n";
-	else {
-		for (int i = 0; i < tasks; i++) {
-			file << (1 + (rand() % 100)) <<" " << (99 - (rand() % 199)) << " " << (99 - (rand() % 199)) << "\n";
-		}
-	}
-	file.close();
-}
 void tasks(int tasks) {
-	ifstream fileTask;
+	ofstream fileTask;
 	ofstream fileKey;
 	ofstream fileAns;
 	fileTask.open("output_task.txt");
@@ -195,7 +191,10 @@ void tasks(int tasks) {
 		Node* tree = NULL;
 		SetConsoleCP(1251);
 		for (int i = 0; i < tasks; i++) {	
-			fileTask >> amount >> del >> ins;
+			amount = (1 + (rand() % 100));
+			del = (99 - (rand() % 199));
+			ins = (99 - (rand() % 199));
+			fileTask << "Создать дерево размером " << amount << ". Удалить элемент со значением " << del << ". Вставить элемент со значением " << ins << ".\n";
 			fileKey << "\tЗадание " << (i + 1) << endl;
 			fileAns << "\tЗадание " << (i + 1) << endl;
 			fileAns << "Создано дерево размером " << amount << ".\n";
@@ -223,7 +222,6 @@ void Tasks() {
 		<< "Будет выбрано случайное число, которое добавится в дерево.\n"
 		<< "Введите, сколько заданий сгенерировать: ";
 	cin >> num;
-	createTasks(num);
 	tasks(num);
 }
 void preOrderTravers(Node* root) {
@@ -270,7 +268,7 @@ int main() {
 			if (tree) destroyTree(tree);
 			cout << "1 - Заполнить дерево случайными числами от -99 до 99.\n"
 				<< "2 - Ввести элементы дерева вручную.\n"
-				<< "3 - Заполнить данными из массива."
+				<< "3 - Заполнить данными из массива.\n"
 				<< "Ваш выбор: ";
 			cin >> create;
 			switch (create) {
@@ -310,8 +308,11 @@ int main() {
 				showTree(tree, NULL, false);
 				cout << "Введите элемент, который хотите добавить: ";
 				cin >> data;
+				auto start = steady_clock::now();
 				insert(tree, data);
-				cout << "Элемент добавлен.\n";
+				cout << "Элемент добавлен.\n"; 
+				auto end = steady_clock::now();
+				cout << "Время добавления " << duration_cast<nanoseconds>(end - start).count() << " наносекунд\n";
 				showTree(tree, NULL, false);				
 			}
 			else cout << "Дерево не создано.\n";
@@ -324,8 +325,11 @@ int main() {
 				showTree(tree, NULL, false);
 				cout << "Введите элемент, который хотите удалить: ";
 				cin >> data;
+				auto start = steady_clock::now();
 				delElem(tree, data);
 				cout << "Элемент удалён.\n";
+				auto end = steady_clock::now();
+				cout << "Время удаления " << duration_cast<nanoseconds>(end - start).count() << " наносекунд\n";
 				showTree(tree, NULL, false);
 			}
 			else cout << "Дерево не создано.\n";
@@ -338,7 +342,10 @@ int main() {
 				showTree(tree, NULL, false);
 				cout << "Введите элемент, который хотите получить: ";
 				cin >> data;
+				auto start = steady_clock::now();
 				getElem(tree, data);
+				auto end = steady_clock::now();
+				cout << "Время получения " << duration_cast<nanoseconds>(end - start).count() << " наносекунд\n";
 			}
 			else cout << "Дерево не создано.\n";
 			system("pause");
